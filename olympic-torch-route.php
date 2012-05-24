@@ -75,10 +75,16 @@ function pj_otr_shortcode($atts){
 		var walsall = new L.LatLng(52.598306, -2.018);
 		map.setView(walsall, 12).addLayer(cloudmade);
 		
-		$.getJSON("'.plugins_url('visits.json', __FILE__).'visits.json", function(data) { 
-			//When GeoJSON is loaded 
+		$.getJSON("'.plugins_url('visits.json', __FILE__).'", function(data) { 
+			var visits = data[\'visits\'];
+			
+			$.each(visits, function(key, val) {
+				
+			}
+			
+			/*When GeoJSON is loaded 
 			var geojsonLayer = new L.GeoJSON(data); //New GeoJSON layer 
-			map.addLayer(geojsonLayer); //Add layer to map 
+			map.addLayer(geojsonLayer); //Add layer to map */
 		});
 		
 	</script>
