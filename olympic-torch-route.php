@@ -71,10 +71,6 @@ function pj_otr_shortcode($atts){
 		    maxZoom: 18
 		});
 		
-		// centre the map on Walsall to start with
-		var walsall = new L.LatLng(52.598306, -2.018);
-		map.setView(walsall, 12).addLayer(cloudmade);
-		
 		$.getJSON("'.plugins_url('visits.json', __FILE__).'", function(data) { 
 			var visits = data[\'visits\'];
 			
