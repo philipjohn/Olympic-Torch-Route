@@ -23,6 +23,8 @@ License: GPL2
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+    
+    JSON borrowed from http://oliverobrien.co.uk/2011/11/olympic-torch-relay-the-unofficial-map/
 */
 
 /*
@@ -65,26 +67,81 @@ add_action('wp_enqueue_scripts', 'pj_otr_leafletjs');
 function pj_otr_shortcode($atts){
 	return '<div id="map" style="height: 400px"></div>
 	<script type="text/javascript">
-		var map = new L.Map(\'map\');
+		function var_dump(obj) {
+		    var out = \'\';
+		    for (var i in obj) {
+		        out += i + ": " + obj[i] + "\n";
+		    }
+		
+		    //alert(out);
+		
+		    // or, if you wanted to avoid alerts...
+		
+		    var pre = document.createElement(\'pre\');
+		    pre.innerHTML = out;
+		    document.body.appendChild(pre)
+		}
+		function dump(obj) {
+		    var pre = document.createElement(\'pre\');
+		    pre.innerHTML = obj;
+		    document.body.appendChild(pre)
+		}
+		
+		var map = new L.Map(\'map\', {
+		    center: new L.LatLng(54.044722, -2.779444),
+		    zoom: 6
+	    });
 		var cloudmade = new L.TileLayer(\'http://{s}.tile.cloudmade.com/44244adfc7ed4010a5899aae77532841/997/256/{z}/{x}/{y}.png\', {
-		    attribution: \'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>\',
+		    attribution: \'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>, Route: <a href="http://www.london2012.com/olympic-torch-relay-map">LOCOG</a>\',
 		    maxZoom: 18
 		});
+		map.addLayer(cloudmade);
 		
-		$.getJSON("'.plugins_url('visits.json', __FILE__).'", function(data) { 
-			var visits = data[\'visits\'];
-			
-			$.each(visits, function(key, val) {
+		jQuery.ajax({
+			url: \''.plugins_url('visits.json', __FILE__).'\',
+    		dataType: \'json\',
+			success: function(data) { 
+				var visits = data[\'visits\'];
+				var coords = \'\';
 				
+				jQuery.each(visits, function(key, val) {
+					// Add a marker for this location to the map
+					var latlng = new L.LatLng(val[\'Latitude\'], val[\'Longitude\']);
+					var marker = new L.Marker(latlng);
+					map.addLayer(marker);
+					
+					// Add the coords to the coords string for creating the route line
+					coords += \', [\'+val[\'Longitude\']+\', \'+val[\'Latitude\']+\']\';
+				});
+				
+				coords = coords.substr(2);
+				var ccoords = \'[\'+coords;
+				dump(ccoords);
+				ccoords += \']\';
+				dump(ccoords);
+				
+				var geojsonFeature = {
+					"type": "feature",
+					"properties": {
+						"Name": "",
+						"Description": "",
+						"style": {
+							"color": "#043882"
+						}
+					},
+					"geometry": {
+						"type": "LineString",
+						"coordinates": ccoords
+					}
+				}
+				var_dump(geojsonFeature[\'geometry\']);
+				var geojsonLayer = new L.GeoJSON(geojsonFeature);
+				map.addLayer(geojsonLayer);
 			}
-			
-			/*When GeoJSON is loaded 
-			var geojsonLayer = new L.GeoJSON(data); //New GeoJSON layer 
-			map.addLayer(geojsonLayer); //Add layer to map */
 		});
-		
 	</script>
-	<div class="clear"></div>';
+	<div class="clear"></div>
+	<input type="button" name="visits" id="visits" value="Dump Visits" />';
 }
 add_shortcode('olympic-torch-route', 'pj_otr_shortcode');
 
