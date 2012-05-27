@@ -99,12 +99,35 @@ function pj_otr_shortcode($atts){
 		
 		jQuery.ajax({
 			url: \''.plugins_url('visits.json', __FILE__).'\',
-    		dataType: \'json\',
+    			dataType: \'json\',
 			success: function(data) { 
 				var visits = data[\'visits\'];
 				var coords = \'\';
 				
-				jQuery.each(visits, function(key, val) {
+				var geojson = new L.GeoJSON(null, {
+                        pointToLayer: function(latlng) { return new L.Marker(latlng); }
+                    });
+
+	            var mapBounds = new L.LatLngBounds();
+	
+	            num = 0;
+	
+	            geojson.on(\'featureparse\', function(e) {
+	                type = e.geometryType;
+	
+	                var popupText = \'<strong>\' + e.properties.name + \'</strong><br /><br />\' + e.properties.description;
+	                e.layer.bindPopup(popupText);
+	
+	                mapBounds.extend(e.layer._latlng);
+	
+	                num++;          
+	            });
+	
+	            geojson.addGeoJSON(visits);
+	
+	            map.fitBounds(mapBounds);
+				
+				/*jQuery.each(visits, function(key, val) {
 					// Add a marker for this location to the map
 					var latlng = new L.LatLng(val[\'Latitude\'], val[\'Longitude\']);
 					var marker = new L.Marker(latlng);
@@ -136,7 +159,7 @@ function pj_otr_shortcode($atts){
 				}
 				var_dump(geojsonFeature[\'geometry\']);
 				var geojsonLayer = new L.GeoJSON(geojsonFeature);
-				map.addLayer(geojsonLayer);
+				map.addLayer(geojsonLayer);*/
 			}
 		});
 	</script>
